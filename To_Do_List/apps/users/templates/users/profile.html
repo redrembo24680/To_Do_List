@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Todo List{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                             style="width: 80px; height: 80px; font-size: 2rem;">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h2 class="mb-0">{{ user.email }}</h2>
+                            <p class="text-muted mb-0">Member since {{ user.date_joined|date:"F Y" }}</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card bg-light border-0">
+                                <div class="card-body">
+                                    <h6 class="text-muted mb-1">Email</h6>
+                                    <p class="mb-0">{{ user.email }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light border-0">
+                                <div class="card-body">
+                                    <h6 class="text-muted mb-1">User ID</h6>
+                                    <p class="mb-0"><code>{{ user.id }}</code></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'account_change_password' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-key"></i> Change Password
+                        </a>
+                        <a href="{% url 'account_email' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-envelope"></i> Manage Email
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

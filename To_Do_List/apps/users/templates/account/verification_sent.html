@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Verification Email Sent - Todo List{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/signup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card auth-card">
+                    <div class="card-body p-4 text-center">
+                        <h2 class="mb-4">
+                            <i class="bi bi-envelope-check"></i> Verification Email Sent
+                        </h2>
+
+                        <div class="alert alert-success auth-alert">
+                            <i class="bi bi-check-circle"></i>
+                            We have sent an email to you for verification. Please check your inbox and click the confirmation link to complete registration.
+                        </div>
+
+                        <p class="text-muted">
+                            Didn't receive the email? Check your spam folder or contact support.
+                        </p>
+
+                        <a href="{% url 'account_login' %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-box-arrow-in-right"></i> Go to Login
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'users/js/signup.js' %}"></script>
+{% endblock %}

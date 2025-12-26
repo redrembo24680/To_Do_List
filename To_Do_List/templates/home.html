@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Todo List{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    {% if user.is_authenticated %}
+        <!-- Authenticated User View -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="mb-0">
+                        <i class="bi bi-folder"></i> My Projects
+                    </h1>
+                    <button class="btn btn-primary"
+                            hx-get="/projects/create/"
+                            hx-target="#project-modal-content"
+                            data-bs-toggle="modal"
+                            data-bs-target="#projectModal">
+                        <i class="bi bi-plus-lg"></i> New Project
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects Grid -->
+        <div id="projects-container"
+             hx-get="/projects/"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <!-- Projects will be loaded here via HTMX -->
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Modal -->
+        <div class="modal fade" id="projectModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content" id="project-modal-content">
+                    <!-- Modal content loaded via HTMX -->
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- Guest User View -->
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-8">
+                <div class="mb-5">
+                    <i class="bi bi-check2-square display-1 text-primary mb-4"></i>
+                    <h1 class="display-4 fw-bold mb-4">
+                        Welcome to Todo List
+                    </h1>
+                    <p class="lead text-muted mb-4">
+                        Manage your tasks and projects efficiently.
+                        Stay organized and boost your productivity.
+                    </p>
+                </div>
+
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mb-5">
+                    <a href="{% url 'account_signup' %}" class="btn btn-primary btn-lg px-5">
+                        <i class="bi bi-person-plus"></i> Get Started
+                    </a>
+                    <a href="{% url 'account_login' %}" class="btn btn-outline-secondary btn-lg px-5">
+                        <i class="bi bi-box-arrow-in-right"></i> Sign In
+                    </a>
+                </div>
+
+                <div class="row g-4 mt-5">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center p-4">
+                                <i class="bi bi-folder-check display-4 text-primary mb-3"></i>
+                                <h5 class="card-title">Organize Projects</h5>
+                                <p class="card-text text-muted">
+                                    Create and manage multiple projects with ease
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center p-4">
+                                <i class="bi bi-list-task display-4 text-primary mb-3"></i>
+                                <h5 class="card-title">Track Tasks</h5>
+                                <p class="card-text text-muted">
+                                    Add tasks, set priorities, and deadlines
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center p-4">
+                                <i class="bi bi-check-circle display-4 text-primary mb-3"></i>
+                                <h5 class="card-title">Stay Productive</h5>
+                                <p class="card-text text-muted">
+                                    Mark tasks complete and track progress
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

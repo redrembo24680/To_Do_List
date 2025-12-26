@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Confirm Email - Todo List{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'users/css/signup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card auth-card">
+                    <div class="card-body p-4 text-center">
+                        <h2 class="mb-4">
+                            <i class="bi bi-envelope-check"></i> Confirm Email
+                        </h2>
+
+                        {% if confirmation %}
+                            <p class="text-muted mb-4">
+                                Please confirm that <strong>{{ confirmation.email_address.email }}</strong> is an email address for user {{ confirmation.email_address.user }}.
+                            </p>
+
+                            <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary w-100 mb-3">
+                                    <i class="bi bi-check-circle"></i> Confirm Email
+                                </button>
+                            </form>
+                        {% else %}
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                This email confirmation link is invalid or has expired.
+                            </div>
+                            <a href="{% url 'account_login' %}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-box-arrow-in-right"></i> Go to Login
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'users/js/signup.js' %}"></script>
+{% endblock %}
