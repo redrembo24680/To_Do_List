@@ -13,12 +13,7 @@ A modern, full-featured task management system built with Django 5.2, featuring 
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
 - [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Running the Application](#running-the-application)
 - [Development](#development)
-  - [Running Tests](#running-tests)
-  - [Code Quality](#code-quality)
 - [Project Structure](#project-structure)
 - [API Endpoints](#api-endpoints)
 - [Environment Variables](#environment-variables)
@@ -30,8 +25,9 @@ A modern, full-featured task management system built with Django 5.2, featuring 
 - **Project Management**: Create, update, and delete projects to organize tasks
 - **Task Management**: Full CRUD operations for tasks with rich metadata
 - **Task Prioritization**: Three-level priority system (Low, Medium, High)
-- **Deadlines**: Optional deadline tracking for time-sensitive tasks
+- **Deadlines**: Optional deadline tracking with validation (cannot be in the past)
 - **Task Assignment**: Assign tasks to specific users
+- **Task Completion**: Toggle task completion status
 - **User Authentication**: Secure login/signup with email verification via django-allauth
 - **HTMX Integration**: Dynamic, SPA-like experience without full page reloads
 - **Responsive Design**: Mobile-friendly interface
@@ -41,6 +37,8 @@ A modern, full-featured task management system built with Django 5.2, featuring 
 - Django's built-in CSRF protection
 - Secure password hashing
 - Environment-based configuration
+- Required SECRET_KEY validation
+- ALLOWED_HOSTS configuration
 
 ### Developer Features
 - Docker-compose setup for easy deployment
@@ -48,6 +46,7 @@ A modern, full-featured task management system built with Django 5.2, featuring 
 - Pre-commit hooks with Ruff for code quality
 - PostgreSQL database with proper migrations
 - Email testing with Mailpit
+- Code refactoring with mixins (DRY principle)
 
 ## 🚀 Tech Stack
 
@@ -87,11 +86,13 @@ To_Do_List/
 │   │   ├── models.py         # Project model with UUID primary keys
 │   │   ├── views.py          # Class-based views with HTMX support
 │   │   ├── managers.py       # Custom OwnedManager for user filtering
+│   │   ├── mixins.py         # HTMXResponseMixin, ProjectQuerysetMixin
 │   │   ├── forms.py          # Project forms with validation
 │   │   └── urls.py           # URL routing
 │   ├── tasks/                # Task management app
 │   │   ├── models.py         # Task model with priorities & deadlines
 │   │   ├── views.py          # Task CRUD operations
+│   │   ├── mixins.py         # TaskHTMXMixin for HTMX responses
 │   │   └── forms.py          # Task forms with deadline validation
 │   └── users/                # User management & authentication
 │       ├── models.py         # Custom User model
@@ -113,19 +114,25 @@ To_Do_List/
    - `OwnedManager`: Filters objects by user ownership
    - Reusable querysets for common operations
 
-3. **Views** (`views.py`): Request handling and user interactions
+3. **Mixins** (`mixins.py`): Reusable view logic
+   - `HTMXResponseMixin`: Common HTMX response handling
+   - `ProjectQuerysetMixin`: Shared queryset logic for projects
+   - `TaskHTMXMixin`: HTMX responses for tasks
+
+4. **Views** (`views.py`): Request handling and user interactions
    - Authorization checks (LoginRequiredMixin)
-   - HTMX response handling
+   - HTMX response handling via mixins
    - Integration of forms and models
 
-4. **Forms** (`forms.py`): Input validation and data cleaning
+5. **Forms** (`forms.py`): Input validation and data cleaning
    - Field-level validation
-   - Cross-field validation
+   - Cross-field validation (e.g., deadline cannot be in the past)
    - Custom error messages
 
 ### Key Design Patterns
 
 - **Custom Manager Pattern**: `OwnedManager` provides reusable user-scoped queries
+- **Mixin Pattern**: Reusable view logic to eliminate code duplication (DRY)
 - **UUID Primary Keys**: Using UUIDs for better security and distributed systems
 - **Prefetch Related**: Optimized queries to prevent N+1 problems
 - **Class-Based Views**: Reusable, maintainable view logic
@@ -147,17 +154,7 @@ That's it! Docker handles Python, PostgreSQL, and all dependencies.
    cd To_Do_List
    ```
 
-2. **Create environment file** (optional)
-
-   The application works out of the box with Docker. For production, create a `.env` file:
-   ```bash
-   # .env file in To_Do_List/ directory
-   DJANGO_SECRET_KEY=your-secret-key-here
-   DEBUG=False
-   DATABASE_URL=postgresql://postgres:roman1201@db:5432/To_Do_List
-   ```
-
-3. **Build and start the containers**
+2. **Build and start the containers**
    ```bash
    docker-compose up --build
    ```
@@ -169,7 +166,7 @@ That's it! Docker handles Python, PostgreSQL, and all dependencies.
    - Run Django migrations
    - Start the development server
 
-4. **Access the application**
+3. **Access the application**
    - **Web Application**: http://localhost:8000
    - **Mailpit (Email Testing)**: http://localhost:8025
    - **Database**: localhost:5432
@@ -187,6 +184,12 @@ docker-compose up -d
 
 # View logs
 docker-compose logs -f web
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (deletes database data)
+docker-compose down -v
 ```
 
 #### Creating a Superuser
@@ -196,16 +199,6 @@ docker-compose exec web python manage.py createsuperuser
 ```
 
 Then access the admin panel at http://localhost:8000/admin
-
-#### Stopping the Application
-
-```bash
-# Stop all services
-docker-compose down
-
-# Stop and remove volumes (deletes database data)
-docker-compose down -v
-```
 
 ### Running Locally Without Docker (Alternative)
 
@@ -234,11 +227,18 @@ If you prefer to run without Docker:
 
    Create a database named `To_Do_List`
 
-5. **Create .env file**
-   ```
-   DJANGO_SECRET_KEY=your-secret-key
+5. **Create .env file in To_Do_List/ directory**
+   ```env
+   DJANGO_SECRET_KEY=your-secret-key-here
    DEBUG=True
-   DATABASE_URL=postgresql://postgres:password@localhost:5432/To_Do_List
+   POSTGRES_DB=To_Do_List
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=your-password
+   POSTGRES_HOST=localhost
+   POSTGRES_PORT=5432
+   ALLOWED_HOSTS=localhost,127.0.0.1
+   EMAIL_HOST=localhost
+   EMAIL_PORT=1025
    ```
 
 6. **Run migrations and start server**
@@ -278,8 +278,6 @@ docker-compose exec web pytest --cov=apps --cov-report=html
 - **Views**: 16 tests for CRUD operations and user isolation
 - **Forms**: 6 tests for validation logic
 - **Authentication**: 4 tests for login/signup flows
-
-See [TESTING.md](TESTING.md) for detailed testing documentation.
 
 ### Code Quality
 
@@ -349,14 +347,15 @@ docker-compose exec web python manage.py shell
 To_Do_List/
 ├── docker-compose.yml           # Docker services configuration
 ├── pyproject.toml              # Ruff and pytest configuration
-├── TESTING.md                  # Testing documentation
-├── README.md                   # This file
+├── SQL.md                       # SQL queries documentation
+├── README.md                    # This file
 │
 └── To_Do_List/                 # Django project directory
     ├── Dockerfile              # Docker image definition
     ├── requirements.txt        # Python dependencies
     ├── manage.py              # Django management script
     ├── pytest.ini             # Pytest configuration
+    ├── conftest.py            # Pytest fixtures
     │
     ├── apps/                  # Django applications
     │   ├── projects/         # Project management
@@ -364,6 +363,7 @@ To_Do_List/
     │   │   ├── views.py      # CRUD views with HTMX
     │   │   ├── forms.py      # ProjectForm with validation
     │   │   ├── managers.py   # OwnedManager for user filtering
+    │   │   ├── mixins.py     # HTMXResponseMixin, ProjectQuerysetMixin
     │   │   ├── urls.py       # URL patterns
     │   │   ├── admin.py      # Admin interface
     │   │   ├── tests.py      # Unit tests
@@ -373,6 +373,7 @@ To_Do_List/
     │   │   ├── models.py     # Task model (priority, deadline, status)
     │   │   ├── views.py      # Task CRUD with inline editing
     │   │   ├── forms.py      # TaskForm with deadline validation
+    │   │   ├── mixins.py     # TaskHTMXMixin for HTMX responses
     │   │   ├── urls.py       # Task URL patterns
     │   │   ├── tests.py      # Task tests
     │   │   └── templates/    # Task templates
@@ -408,6 +409,9 @@ To_Do_List/
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/projects/` | List all user's projects |
+| GET | `/projects/all/` | HTMX partial: All projects with tasks |
+| GET | `/projects/partial/` | HTMX partial: Projects sidebar |
+| GET | `/projects/<uuid:pk>/` | Project detail with tasks |
 | POST | `/projects/create/` | Create new project |
 | POST | `/projects/<uuid:pk>/update/` | Update project |
 | DELETE | `/projects/<uuid:pk>/delete/` | Delete project |
@@ -416,7 +420,7 @@ To_Do_List/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/projects/<uuid:pk>/tasks/create/` | Create task in project |
+| POST | `/tasks/<uuid:project_pk>/create/` | Create task in project |
 | POST | `/tasks/<uuid:pk>/update/` | Update task |
 | DELETE | `/tasks/<uuid:pk>/delete/` | Delete task |
 | POST | `/tasks/<uuid:pk>/toggle/` | Toggle task completion |
@@ -428,17 +432,25 @@ To_Do_List/
 | GET/POST | `/accounts/login/` | User login |
 | GET/POST | `/accounts/signup/` | User registration |
 | POST | `/accounts/logout/` | User logout |
-| GET | `/accounts/profile/` | User profile |
+| GET | `/users/profile/` | User profile |
 
 ## ⚙️ Environment Variables
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
-| `DJANGO_SECRET_KEY` | Django secret key | `unsafe-default-key` | Production only |
+| `DJANGO_SECRET_KEY` | Django secret key | - | **Yes** (raises error if not set) |
 | `DEBUG` | Debug mode | `False` | No |
-| `DATABASE_URL` | PostgreSQL connection URL | Configured in docker-compose | No |
+| `ALLOWED_HOSTS` | Comma-separated list of allowed hosts | `[]` | No (recommended for production) |
+| `POSTGRES_DB` | PostgreSQL database name | - | Yes (for Docker) |
+| `POSTGRES_USER` | PostgreSQL username | - | Yes (for Docker) |
+| `POSTGRES_PASSWORD` | PostgreSQL password | - | Yes (for Docker) |
+| `POSTGRES_HOST` | PostgreSQL host | `db` | Yes (for Docker) |
+| `POSTGRES_PORT` | PostgreSQL port | `5432` | No |
 | `EMAIL_HOST` | SMTP host | `mailpit` | No |
 | `EMAIL_PORT` | SMTP port | `1025` | No |
+| `USE_SQLITE_FOR_TESTS` | Use SQLite for tests | `False` | No |
+
+**Note**: In Docker, these are configured in `docker-compose.yml`. For local development, create a `.env` file in the `To_Do_List/` directory.
 
 ## 📝 Contributing
 
@@ -462,6 +474,7 @@ git commit -m "feat: add task priority filtering"
 git commit -m "fix: resolve deadline validation issue"
 git commit -m "docs: update installation instructions"
 git commit -m "test: add project deletion tests"
+git commit -m "refactor: add mixins to eliminate code duplication"
 ```
 
 ### Development Workflow
@@ -471,3 +484,27 @@ git commit -m "test: add project deletion tests"
 3. Run tests: `docker-compose exec web pytest`
 4. Run linting: `docker-compose exec web ruff check .`
 5. Push and create Pull Request
+
+### Code Quality Standards
+
+- All code must pass Ruff linting
+- Tests should maintain >90% coverage
+- Use type hints where appropriate
+- Follow DRY principle (Don't Repeat Yourself)
+- Use mixins for reusable view logic
+- Document complex business logic
+
+## 📚 Additional Documentation
+
+- **SQL.md**: SQL queries and database examples
+
+## 🔒 Security Notes
+
+- **SECRET_KEY**: Must be set via environment variable. Application will raise an error if not provided.
+- **ALLOWED_HOSTS**: Should be configured for production deployments
+- **DEBUG**: Should be `False` in production
+- User data is isolated by ownership - users can only access their own projects and tasks
+
+## 📄 License
+
+This project is for interview/portfolio purposes.
