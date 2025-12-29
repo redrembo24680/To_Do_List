@@ -1,0 +1,473 @@
+# To-Do List - Task Management Web Application
+
+A modern, full-featured task management system built with Django 5.2, featuring project-based task organization, user authentication, and real-time HTMX interactions.
+
+![Python Version](https://img.shields.io/badge/python-3.13-blue.svg)
+![Django Version](https://img.shields.io/badge/django-5.2-green.svg)
+![Test Coverage](https://img.shields.io/badge/coverage-90.22%25-brightgreen.svg)
+![Code Style](https://img.shields.io/badge/code%20style-ruff-black.svg)
+
+## 📋 Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Running the Application](#running-the-application)
+- [Development](#development)
+  - [Running Tests](#running-tests)
+  - [Code Quality](#code-quality)
+- [Project Structure](#project-structure)
+- [API Endpoints](#api-endpoints)
+- [Environment Variables](#environment-variables)
+- [Contributing](#contributing)
+
+## ✨ Features
+
+### Core Functionality
+- **Project Management**: Create, update, and delete projects to organize tasks
+- **Task Management**: Full CRUD operations for tasks with rich metadata
+- **Task Prioritization**: Three-level priority system (Low, Medium, High)
+- **Deadlines**: Optional deadline tracking for time-sensitive tasks
+- **Task Assignment**: Assign tasks to specific users
+- **User Authentication**: Secure login/signup with email verification via django-allauth
+- **HTMX Integration**: Dynamic, SPA-like experience without full page reloads
+- **Responsive Design**: Mobile-friendly interface
+
+### Security Features
+- User-based data isolation (users can only see their own projects/tasks)
+- Django's built-in CSRF protection
+- Secure password hashing
+- Environment-based configuration
+
+### Developer Features
+- Docker-compose setup for easy deployment
+- Comprehensive test suite (90.22% coverage)
+- Pre-commit hooks with Ruff for code quality
+- PostgreSQL database with proper migrations
+- Email testing with Mailpit
+
+## 🚀 Tech Stack
+
+**Backend:**
+- Python 3.13
+- Django 5.2
+- PostgreSQL 16
+- django-allauth (authentication)
+- django-htmx (HTMX integration)
+
+**Frontend:**
+- HTMX (dynamic interactions)
+- Vanilla JavaScript
+- CSS3
+
+**DevOps:**
+- Docker & Docker Compose
+- PostgreSQL (Alpine)
+- Mailpit (email testing)
+
+**Development Tools:**
+- Ruff (linting & formatting)
+- pytest & pytest-django (testing)
+- pytest-cov (coverage reporting)
+- pre-commit (git hooks)
+
+## 🏗️ Architecture
+
+This application follows Django's MVT (Model-View-Template) pattern with a clear separation of concerns:
+
+### App Structure
+
+```
+To_Do_List/
+├── apps/                      # Django applications
+│   ├── projects/             # Project management app
+│   │   ├── models.py         # Project model with UUID primary keys
+│   │   ├── views.py          # Class-based views with HTMX support
+│   │   ├── managers.py       # Custom OwnedManager for user filtering
+│   │   ├── forms.py          # Project forms with validation
+│   │   └── urls.py           # URL routing
+│   ├── tasks/                # Task management app
+│   │   ├── models.py         # Task model with priorities & deadlines
+│   │   ├── views.py          # Task CRUD operations
+│   │   └── forms.py          # Task forms with deadline validation
+│   └── users/                # User management & authentication
+│       ├── models.py         # Custom User model
+│       └── views.py          # Login, signup, profile views
+└── config/                    # Project configuration
+    ├── settings.py           # Django settings with env variables
+    ├── urls.py               # Root URL configuration
+    └── wsgi.py               # WSGI configuration
+```
+
+### Business Logic Location
+
+1. **Models** (`models.py`): Core business entities
+   - Data validation using Django's model validators
+   - Business rules (e.g., ordering, default values)
+   - Relationships between entities
+
+2. **Managers** (`managers.py`): Query logic and data filtering
+   - `OwnedManager`: Filters objects by user ownership
+   - Reusable querysets for common operations
+
+3. **Views** (`views.py`): Request handling and user interactions
+   - Authorization checks (LoginRequiredMixin)
+   - HTMX response handling
+   - Integration of forms and models
+
+4. **Forms** (`forms.py`): Input validation and data cleaning
+   - Field-level validation
+   - Cross-field validation
+   - Custom error messages
+
+### Key Design Patterns
+
+- **Custom Manager Pattern**: `OwnedManager` provides reusable user-scoped queries
+- **UUID Primary Keys**: Using UUIDs for better security and distributed systems
+- **Prefetch Related**: Optimized queries to prevent N+1 problems
+- **Class-Based Views**: Reusable, maintainable view logic
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Docker and Docker Compose installed on your system
+- Git (for cloning the repository)
+
+That's it! Docker handles Python, PostgreSQL, and all dependencies.
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd To_Do_List
+   ```
+
+2. **Create environment file** (optional)
+
+   The application works out of the box with Docker. For production, create a `.env` file:
+   ```bash
+   # .env file in To_Do_List/ directory
+   DJANGO_SECRET_KEY=your-secret-key-here
+   DEBUG=False
+   DATABASE_URL=postgresql://postgres:roman1201@db:5432/To_Do_List
+   ```
+
+3. **Build and start the containers**
+   ```bash
+   docker-compose up --build
+   ```
+
+   This command will:
+   - Build the Docker images
+   - Start PostgreSQL database
+   - Start Mailpit (email testing)
+   - Run Django migrations
+   - Start the development server
+
+4. **Access the application**
+   - **Web Application**: http://localhost:8000
+   - **Mailpit (Email Testing)**: http://localhost:8025
+   - **Database**: localhost:5432
+
+### Running the Application
+
+#### Standard Development Mode
+
+```bash
+# Start all services
+docker-compose up
+
+# Start in detached mode (background)
+docker-compose up -d
+
+# View logs
+docker-compose logs -f web
+```
+
+#### Creating a Superuser
+
+```bash
+docker-compose exec web python manage.py createsuperuser
+```
+
+Then access the admin panel at http://localhost:8000/admin
+
+#### Stopping the Application
+
+```bash
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (deletes database data)
+docker-compose down -v
+```
+
+### Running Locally Without Docker (Alternative)
+
+If you prefer to run without Docker:
+
+1. **Install Python 3.13+**
+
+2. **Create virtual environment**
+   ```bash
+   python -m venv venv
+
+   # Windows
+   venv\Scripts\activate
+
+   # Linux/Mac
+   source venv/bin/activate
+   ```
+
+3. **Install dependencies**
+   ```bash
+   cd To_Do_List
+   pip install -r requirements.txt
+   ```
+
+4. **Install and start PostgreSQL**
+
+   Create a database named `To_Do_List`
+
+5. **Create .env file**
+   ```
+   DJANGO_SECRET_KEY=your-secret-key
+   DEBUG=True
+   DATABASE_URL=postgresql://postgres:password@localhost:5432/To_Do_List
+   ```
+
+6. **Run migrations and start server**
+   ```bash
+   python manage.py migrate
+   python manage.py runserver
+   ```
+
+## 🔧 Development
+
+### Running Tests
+
+The project has a comprehensive test suite with 90.22% coverage.
+
+```bash
+# Run all tests with coverage report
+docker-compose exec web pytest
+
+# Run with verbose output
+docker-compose exec web pytest -v
+
+# Run specific app tests
+docker-compose exec web pytest apps/projects/tests.py -v
+docker-compose exec web pytest apps/tasks/tests.py -v
+docker-compose exec web pytest apps/users/tests.py -v
+
+# Generate HTML coverage report
+docker-compose exec web pytest --cov=apps --cov-report=html
+
+# View coverage report (generated in htmlcov/)
+# Open htmlcov/index.html in browser
+```
+
+### Test Coverage Details
+
+- **Models**: 8 tests covering Project, Task, and User models
+- **Views**: 16 tests for CRUD operations and user isolation
+- **Forms**: 6 tests for validation logic
+- **Authentication**: 4 tests for login/signup flows
+
+See [TESTING.md](TESTING.md) for detailed testing documentation.
+
+### Code Quality
+
+This project uses Ruff for linting and formatting, with pre-commit hooks to ensure code quality.
+
+#### Pre-commit Setup
+
+```bash
+# Install pre-commit hooks
+docker-compose exec web pre-commit install
+
+# Run manually on all files
+docker-compose exec web pre-commit run --all-files
+```
+
+#### Manual Linting
+
+```bash
+# Check code quality
+docker-compose exec web ruff check .
+
+# Auto-fix issues
+docker-compose exec web ruff check --fix .
+
+# Format code
+docker-compose exec web ruff format .
+```
+
+#### Code Style Rules
+
+- Line length: 100 characters
+- Python version: 3.13
+- Import sorting: isort
+- Enabled rules: pycodestyle, pyflakes, flake8-django, flake8-bugbear
+- Auto-formatting with double quotes
+
+### Database Migrations
+
+```bash
+# Create new migrations
+docker-compose exec web python manage.py makemigrations
+
+# Apply migrations
+docker-compose exec web python manage.py migrate
+
+# Show migration status
+docker-compose exec web python manage.py showmigrations
+```
+
+### Django Shell
+
+```bash
+# Open Django shell
+docker-compose exec web python manage.py shell
+
+# Example: Create a project
+>>> from apps.projects.models import Project
+>>> from django.contrib.auth import get_user_model
+>>> User = get_user_model()
+>>> user = User.objects.first()
+>>> Project.objects.create(owner=user, name="My Project", description="Test")
+```
+
+## 📁 Project Structure
+
+```
+To_Do_List/
+├── docker-compose.yml           # Docker services configuration
+├── pyproject.toml              # Ruff and pytest configuration
+├── TESTING.md                  # Testing documentation
+├── README.md                   # This file
+│
+└── To_Do_List/                 # Django project directory
+    ├── Dockerfile              # Docker image definition
+    ├── requirements.txt        # Python dependencies
+    ├── manage.py              # Django management script
+    ├── pytest.ini             # Pytest configuration
+    │
+    ├── apps/                  # Django applications
+    │   ├── projects/         # Project management
+    │   │   ├── models.py     # Project model (UUID, owner, timestamps)
+    │   │   ├── views.py      # CRUD views with HTMX
+    │   │   ├── forms.py      # ProjectForm with validation
+    │   │   ├── managers.py   # OwnedManager for user filtering
+    │   │   ├── urls.py       # URL patterns
+    │   │   ├── admin.py      # Admin interface
+    │   │   ├── tests.py      # Unit tests
+    │   │   └── templates/    # Project templates
+    │   │
+    │   ├── tasks/            # Task management
+    │   │   ├── models.py     # Task model (priority, deadline, status)
+    │   │   ├── views.py      # Task CRUD with inline editing
+    │   │   ├── forms.py      # TaskForm with deadline validation
+    │   │   ├── urls.py       # Task URL patterns
+    │   │   ├── tests.py      # Task tests
+    │   │   └── templates/    # Task templates
+    │   │
+    │   └── users/            # User management & auth
+    │       ├── models.py     # Custom User model
+    │       ├── views.py      # Auth views
+    │       ├── admin.py      # User admin
+    │       ├── tests.py      # User tests
+    │       └── templates/    # Auth templates
+    │
+    ├── config/               # Django configuration
+    │   ├── settings.py       # Project settings
+    │   ├── urls.py           # Root URL configuration
+    │   ├── wsgi.py           # WSGI entry point
+    │   └── asgi.py           # ASGI entry point
+    │
+    ├── static/               # Static files (CSS, JS)
+    │   ├── css/
+    │   └── js/
+    │
+    ├── templates/            # Global templates
+    │   ├── base.html        # Base template
+    │   └── home.html        # Homepage
+    │
+    └── htmlcov/             # Test coverage reports
+```
+
+## 🔗 API Endpoints
+
+### Projects
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/projects/` | List all user's projects |
+| POST | `/projects/create/` | Create new project |
+| POST | `/projects/<uuid:pk>/update/` | Update project |
+| DELETE | `/projects/<uuid:pk>/delete/` | Delete project |
+
+### Tasks
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/projects/<uuid:pk>/tasks/create/` | Create task in project |
+| POST | `/tasks/<uuid:pk>/update/` | Update task |
+| DELETE | `/tasks/<uuid:pk>/delete/` | Delete task |
+| POST | `/tasks/<uuid:pk>/toggle/` | Toggle task completion |
+
+### Authentication
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET/POST | `/accounts/login/` | User login |
+| GET/POST | `/accounts/signup/` | User registration |
+| POST | `/accounts/logout/` | User logout |
+| GET | `/accounts/profile/` | User profile |
+
+## ⚙️ Environment Variables
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `DJANGO_SECRET_KEY` | Django secret key | `unsafe-default-key` | Production only |
+| `DEBUG` | Debug mode | `False` | No |
+| `DATABASE_URL` | PostgreSQL connection URL | Configured in docker-compose | No |
+| `EMAIL_HOST` | SMTP host | `mailpit` | No |
+| `EMAIL_PORT` | SMTP port | `1025` | No |
+
+## 📝 Contributing
+
+### Git Commit Guidelines
+
+This project follows [semantic commit messages](https://www.conventionalcommits.org/):
+
+```
+feat: add new feature
+fix: bug fix
+docs: documentation changes
+style: formatting, missing semicolons, etc.
+refactor: code restructuring
+test: adding tests
+chore: maintenance tasks
+```
+
+**Examples:**
+```bash
+git commit -m "feat: add task priority filtering"
+git commit -m "fix: resolve deadline validation issue"
+git commit -m "docs: update installation instructions"
+git commit -m "test: add project deletion tests"
+```
+
+### Development Workflow
+
+1. Create a feature branch: `git checkout -b feat/your-feature`
+2. Make changes with semantic commits
+3. Run tests: `docker-compose exec web pytest`
+4. Run linting: `docker-compose exec web ruff check .`
+5. Push and create Pull Request

@@ -1,7 +1,7 @@
 /* Login page styles */
 .auth-page {
     min-height: calc(100vh - 120px);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(to bottom, #f5f0e8 0%, #f5f0e8 30%, #f4a460 70%, #f4a460 100%);
     padding: 3rem 0;
 }
 
@@ -10,7 +10,7 @@
     border-radius: 1rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.95);
+    background: #ffffff;
 }
 
 .auth-card .card-body {
@@ -24,7 +24,7 @@
 }
 
 .auth-card h2 i {
-    color: #0d6efd;
+    color: #5b9bd5;
 }
 
 .auth-form .form-label {
@@ -38,27 +38,29 @@
     padding: 0.75rem 1rem;
     border: 2px solid #e2e8f0;
     transition: all 0.3s ease;
+    background: #f8f9fa;
 }
 
 .auth-form .form-control:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
-    transform: translateY(-2px);
+    border-color: #5b9bd5;
+    box-shadow: 0 0 0 0.2rem rgba(91, 155, 213, 0.15);
+    background: #ffffff;
 }
 
 .auth-form .btn-primary {
     padding: 0.75rem 1.5rem;
     font-weight: 600;
     border-radius: 0.5rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #5b9bd5;
     border: none;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    width: 100%;
 }
 
 .auth-form .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    background: #4a8bc2;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(91, 155, 213, 0.3);
 }
 
 .auth-divider {

@@ -20,13 +20,14 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from config.views import HomeView
+from apps.projects.views import ProjectListView
 
 urlpatterns = [
-    path("", HomeView.as_view(), name="home"),
+    path("", ProjectListView.as_view(), name="home"),
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
     path("projects/", include("apps.projects.urls")),
+    path("tasks/", include("apps.tasks.urls")),
     path("users/", include("apps.users.urls")),
 ]
 

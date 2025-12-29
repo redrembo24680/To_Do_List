@@ -76,24 +76,79 @@
     </nav>
 
     <!-- Messages -->
-    {% if messages %}
-        <div class="container mt-3">
+    <div id="messages-container">
+        {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="container mt-3">
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 </div>
             {% endfor %}
-        </div>
-    {% endif %}
+        {% endif %}
+    </div>
+
+    <script>
+    // Remove entire messages container when all alerts are closed
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.alert-dismissible').forEach(function(alert) {
+            alert.addEventListener('closed.bs.alert', function() {
+                const container = this.closest('.container');
+                if (container) {
+                    container.remove();
+                }
+
+                // Check if messages-container is now empty and remove it
+                const messagesContainer = document.getElementById('messages-container');
+                if (messagesContainer && messagesContainer.querySelectorAll('.alert').length === 0) {
+                    messagesContainer.remove();
+                }
+            });
+        });
+    });
+    </script>
 
     <!-- Main Content -->
-    <main class="flex-grow-1">
-        {% block content %}{% endblock %}
+    <main class="flex-grow-1" style="background: linear-gradient(to bottom, #f5f0e8 0%, #f5f0e8 30%, #f4a460 70%, #f4a460 100%); min-height: 100vh; padding: 0; margin: 0;">
+        {% block content %}
+        {% if user.is_authenticated %}
+            <div class="container py-4" id="projects-container"
+                 hx-get="{% url 'projects:projects_all' %}"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                <!-- Projects will be loaded here -->
+            </div>
+
+            <!-- Add Project Button -->
+            <div class="text-center mb-4">
+                <button class="btn btn-add-project"
+                        hx-get="{% url 'projects:project_create' %}"
+                        hx-target="#project-form-modal"
+                        hx-swap="innerHTML"
+                        data-bs-toggle="modal"
+                        data-bs-target="#projectModal">
+                    <i class="bi bi-plus-lg"></i> Add TODO List
+                </button>
+            </div>
+
+            <!-- Project Form Modal -->
+            <div class="modal fade" id="projectModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content" id="project-form-modal">
+                        <!-- Form will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        {% endblock %}
     </main>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SortableJS for drag-and-drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>

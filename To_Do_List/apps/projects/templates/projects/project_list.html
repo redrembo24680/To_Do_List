@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Projects - Todo List{% endblock %}
+
+{% block content %}
+<div class="container py-4" id="projects-container"
+     hx-get="{% url 'projects:projects_all' %}"
+     hx-trigger="load"
+     hx-swap="innerHTML">
+    <!-- Projects will be loaded here -->
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Add Project Button -->
+<div class="text-center mb-5 pb-4">
+    <button class="btn btn-add-project"
+            hx-get="{% url 'projects:project_create' %}"
+            hx-target="#project-form-modal"
+            hx-swap="innerHTML"
+            data-bs-toggle="modal"
+            data-bs-target="#projectModal">
+        <i class="bi bi-plus-lg"></i> Add TODO List
+    </button>
+</div>
+
+<!-- Project Form Modal -->
+<div class="modal fade" id="projectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" id="project-form-modal">
+            <!-- Form will be loaded here -->
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,7 +1,7 @@
 /* Signup page styles */
 .auth-page {
     min-height: calc(100vh - 120px);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(to bottom, #f5f0e8 0%, #f5f0e8 30%, #f4a460 70%, #f4a460 100%);
     padding: 3rem 0;
 }
 

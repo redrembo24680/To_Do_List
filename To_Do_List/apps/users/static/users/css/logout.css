@@ -1,7 +1,7 @@
 /* Logout page styles */
 .auth-page {
     min-height: calc(100vh - 120px);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(to bottom, #f5f0e8 0%, #f5f0e8 30%, #f4a460 70%, #f4a460 100%);
     padding: 3rem 0;
 }
 
@@ -10,7 +10,7 @@
     border-radius: 1rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.95);
+    background: #ffffff;
 }
 
 .auth-card .card-body {

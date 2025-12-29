@@ -1,0 +1,61 @@
+<div class="task-item {% if task.is_done %}task-done{% endif %}" id="task-{{ task.pk }}">
+    <div class="d-flex align-items-center">
+        <!-- Drag Handle -->
+        <div class="task-drag-handle me-2">
+            <i class="bi bi-grip-vertical"></i>
+        </div>
+
+        <!-- Checkbox -->
+        <div class="form-check me-3">
+            <input class="form-check-input task-checkbox"
+                   type="checkbox"
+                   {% if task.is_done %}checked{% endif %}
+                   hx-post="{% url 'tasks:task_toggle' task.pk %}"
+                   hx-target="#task-{{ task.pk }}"
+                   hx-swap="outerHTML">
+        </div>
+
+        <!-- Task Title -->
+        <div class="task-title flex-grow-1">
+            <span class="{% if task.is_done %}text-decoration-line-through text-muted{% endif %}">
+                {{ task.title }}
+            </span>
+            {% if task.description %}
+                <small class="d-block text-muted">{{ task.description }}</small>
+            {% endif %}
+        </div>
+
+        <!-- Task Actions -->
+        <div class="task-actions">
+            {% if task.deadline %}
+                <span class="badge bg-light text-dark me-2">
+                    <i class="bi bi-calendar-event"></i> {{ task.deadline|date:"M d" }}
+                </span>
+            {% endif %}
+
+            {% if task.priority == 3 %}
+                <span class="badge bg-danger me-2">High</span>
+            {% elif task.priority == 2 %}
+                <span class="badge bg-warning me-2">Medium</span>
+            {% elif task.priority == 1 %}
+                <span class="badge bg-secondary me-2">Low</span>
+            {% endif %}
+
+            <button class="btn btn-sm btn-link task-action-btn"
+                    hx-get="{% url 'tasks:task_update' task.pk %}"
+                    hx-target="#task-edit-modal"
+                    hx-swap="innerHTML"
+                    data-bs-toggle="modal"
+                    data-bs-target="#taskModal">
+                <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-link task-action-btn"
+                    hx-delete="{% url 'tasks:task_delete' task.pk %}"
+                    hx-confirm="Delete this task?"
+                    hx-target="#task-{{ task.pk }}"
+                    hx-swap="outerHTML">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </div>
+</div>

@@ -1,18 +1,232 @@
 /* Custom styles for Todo List application */
 
 :root {
-    --primary-color: #0d6efd;
+    --primary-color: #5b9bd5;
     --secondary-color: #6c757d;
-    --success-color: #198754;
+    --success-color: #70ad47;
     --danger-color: #dc3545;
-    --warning-color: #ffc107;
+    --warning-color: #ffd966;
     --auth-gradient-start: #667eea;
     --auth-gradient-end: #764ba2;
+    --project-header-bg: #5b9bd5;
+    --task-hover-bg: #ffd966;
 }
 
 /* Utility classes */
 .cursor-pointer {
     cursor: pointer;
+}
+
+/* Sortable drag-and-drop styles */
+.sortable-ghost {
+    opacity: 0.4;
+    background: #f0f0f0;
+}
+
+.task-drag-handle {
+    cursor: move;
+    color: #ccc;
+    font-size: 1.1rem;
+}
+
+.task-drag-handle:hover {
+    color: #999;
+}
+
+/* Project Card Styles */
+.project-card {
+    background: #ffffff !important;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+    overflow: hidden;
+    max-width: 800px;
+    margin: 0 auto;
+    border: 2px solid #d0d0d0 !important;
+}
+
+.project-header {
+    background: var(--project-header-bg);
+    color: white;
+    padding: 15px 20px;
+}
+
+.project-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.project-header .btn-link {
+    color: white;
+    text-decoration: none;
+    padding: 4px 8px;
+}
+
+.project-header .btn-link:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.project-body {
+    padding: 20px;
+    background: #ffffff !important;
+}
+
+/* Task Input */
+.task-input-container {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    background: #ffffff !important;
+}
+
+.form-control-task {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+.form-control-task:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.btn-add-task {
+    background: var(--success-color);
+    color: white;
+    border: none;
+    padding: 6px 20px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-left: 10px;
+}
+
+.btn-add-task:hover {
+    background: #5a9c3a;
+}
+
+/* Task Item Styles */
+.task-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e8e8e8;
+    transition: background-color 0.15s ease;
+    background: white;
+    position: relative;
+}
+
+.task-item:hover {
+    background-color: #ffd966;
+}
+
+.task-item:last-child {
+    border-bottom: none;
+}
+
+.task-done {
+    background-color: #f5f5f5;
+}
+
+.task-done:hover {
+    background-color: #ececec;
+}
+
+.task-drag-handle {
+    color: #ccc;
+    cursor: move;
+    font-size: 1.1rem;
+}
+
+.task-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    border: 2px solid #ccc;
+    border-radius: 3px;
+}
+
+.task-checkbox:checked {
+    background-color: #5b9bd5;
+    border-color: #5b9bd5;
+}
+
+.task-title {
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.task-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.task-item:hover .task-actions {
+    opacity: 1;
+}
+
+.task-action-btn {
+    color: #999;
+    padding: 2px 6px;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.task-action-btn:hover {
+    color: #333;
+}
+
+/* Add Project Button */
+.btn-add-project {
+    background: var(--project-header-bg);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 500;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.btn-add-project:hover {
+    background: #4a8bc2;
+    color: white;
+}
+
+/* Sidebar styles */
+#projects-sidebar {
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+#projects-sidebar .list-group-item {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#projects-sidebar .list-group-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(5px);
+}
+
+#projects-sidebar .list-group-item.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Main content area */
+#main-content {
+    min-height: calc(100vh - 120px);
+}
+
+/* Task cards */
+.task-card {
+    transition: all 0.3s;
+}
+
+.task-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Authentication Pages Styles */
