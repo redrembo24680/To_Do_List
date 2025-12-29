@@ -29,7 +29,12 @@ services:
     environment:
       - DEBUG=True
       - DJANGO_SECRET_KEY=dev-secret-key-change-in-production
-      - DATABASE_URL=postgresql://postgres:roman1201@db:5432/To_Do_List
+      - POSTGRES_DB=To_Do_List
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=roman1201
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
       - EMAIL_HOST=mailpit
       - EMAIL_PORT=1025
     depends_on:

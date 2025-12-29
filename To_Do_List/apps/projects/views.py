@@ -1,15 +1,21 @@
+from typing import TYPE_CHECKING
+
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Prefetch
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.template.loader import render_to_string
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from .forms import ProjectForm
+from .mixins import HTMXResponseMixin, ProjectQuerysetMixin
 from .models import Project
 
+if TYPE_CHECKING:
+    pass
+else:
+    from apps.tasks.models import Task
 
-class ProjectListView(LoginRequiredMixin, ListView):
+
+class ProjectListView(LoginRequiredMixin, ProjectQuerysetMixin, ListView):
     """Display list of projects for the authenticated user."""
 
     model = Project
@@ -17,22 +23,10 @@ class ProjectListView(LoginRequiredMixin, ListView):
     template_name = "projects/project_list.html"
 
     def get_queryset(self):
-        from apps.tasks.models import Task
-
-        tasks_prefetch = Prefetch(
-            "tasks",
-            queryset=Task.objects.select_related("assigned_to").order_by(
-                "-priority", "deadline", "-created_at"
-            ),
-        )
-        return (
-            Project.objects.for_user(self.request.user)
-            .select_related("owner")
-            .prefetch_related(tasks_prefetch)
-        )
+        return self.get_project_queryset()
 
 
-class ProjectsAllView(LoginRequiredMixin, ListView):
+class ProjectsAllView(LoginRequiredMixin, ProjectQuerysetMixin, ListView):
     """Partial view for HTMX to load all projects with tasks."""
 
     model = Project
@@ -40,19 +34,7 @@ class ProjectsAllView(LoginRequiredMixin, ListView):
     template_name = "projects/partials/projects_all.html"
 
     def get_queryset(self):
-        from apps.tasks.models import Task
-
-        tasks_prefetch = Prefetch(
-            "tasks",
-            queryset=Task.objects.select_related("assigned_to").order_by(
-                "-priority", "deadline", "-created_at"
-            ),
-        )
-        return (
-            Project.objects.for_user(self.request.user)
-            .select_related("owner")
-            .prefetch_related(tasks_prefetch)
-        )
+        return self.get_project_queryset()
 
 
 class ProjectListPartialView(LoginRequiredMixin, ListView):
@@ -66,7 +48,7 @@ class ProjectListPartialView(LoginRequiredMixin, ListView):
         return Project.objects.for_user(self.request.user).select_related("owner")
 
 
-class ProjectCreateView(LoginRequiredMixin, CreateView):
+class ProjectCreateView(LoginRequiredMixin, HTMXResponseMixin, CreateView):
     """Create a new project."""
 
     model = Project
@@ -102,25 +84,12 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
         self.object = form.save()
 
         if self.request.htmx:
-            # Return updated projects list as an HTML fragment
-            projects = (
-                Project.objects.for_user(self.request.user)
-                .select_related("owner")
-                .prefetch_related("tasks")
-            )
-            html = render_to_string(
-                "projects/partials/projects_all.html", {"projects": projects}, request=self.request
-            )
-
-            # Add HX-Trigger header to notify client-side JavaScript
-            response = HttpResponse(html)
-            response["HX-Trigger"] = "projectCreated"
-            return response
+            return self.render_projects_list_htmx("projectCreated")
 
         return redirect("projects:project_list")
 
 
-class ProjectUpdateView(LoginRequiredMixin, UpdateView):
+class ProjectUpdateView(LoginRequiredMixin, HTMXResponseMixin, UpdateView):
     """Update an existing project."""
 
     model = Project
@@ -138,18 +107,7 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         self.object = form.save()
         if self.request.htmx:
-            # Return updated projects list
-            projects = (
-                Project.objects.for_user(self.request.user)
-                .select_related("owner")
-                .prefetch_related("tasks")
-            )
-            html = render_to_string(
-                "projects/partials/projects_all.html", {"projects": projects}, request=self.request
-            )
-            response = HttpResponse(html)
-            response["HX-Trigger"] = "projectUpdated"
-            return response
+            return self.render_projects_list_htmx("projectUpdated")
         return redirect("projects:project_detail", pk=self.object.pk)
 
 
@@ -165,8 +123,6 @@ class ProjectDeleteView(LoginRequiredMixin, DeleteView):
         self.object = self.get_object()
         self.object.delete()
         if request.htmx:
-            from django.http import HttpResponse
-
             return HttpResponse("")
         return redirect("projects:project_list")
 
@@ -174,13 +130,11 @@ class ProjectDeleteView(LoginRequiredMixin, DeleteView):
 class ProjectDetailView(LoginRequiredMixin, ListView):
     """Display tasks for a specific project."""
 
-    model = None
+    model = Task
     context_object_name = "tasks"
     template_name = "projects/partials/project_detail.html"
 
     def get_queryset(self):
-        from apps.tasks.models import Task
-
         self.project = get_object_or_404(
             Project.objects.for_user(self.request.user), pk=self.kwargs["pk"]
         )

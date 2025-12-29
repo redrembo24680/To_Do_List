@@ -1,17 +1,17 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from django.template.loader import render_to_string
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, UpdateView
 
 from apps.projects.models import Project
 
 from .forms import TaskForm
+from .mixins import TaskHTMXMixin
 from .models import Task
 
 
-class TaskCreateView(LoginRequiredMixin, CreateView):
+class TaskCreateView(LoginRequiredMixin, TaskHTMXMixin, CreateView):
     """Create a new task for a project."""
 
     model = Task
@@ -31,16 +31,10 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
         if self.request.htmx and "title" in self.request.POST and len(self.request.POST) <= 3:
             # Simple inline creation
             task = form.save()
-            html = render_to_string(
-                "tasks/partials/task_item.html", {"task": task}, request=self.request
-            )
-            return HttpResponse(html)
+            return self.render_task_item_htmx(task)
 
         self.object = form.save()
         if self.request.htmx:
-            # Return to project view
-            from django.shortcuts import redirect
-
             return redirect("projects:project_list")
         return super().form_valid(form)
 
@@ -51,7 +45,7 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
         return context
 
 
-class TaskUpdateView(LoginRequiredMixin, UpdateView):
+class TaskUpdateView(LoginRequiredMixin, TaskHTMXMixin, UpdateView):
     """Update an existing task."""
 
     model = Task
@@ -69,14 +63,9 @@ class TaskUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         self.object = form.save()
         if self.request.htmx:
-            html = render_to_string(
-                "tasks/partials/task_item.html", {"task": self.object}, request=self.request
+            return self.render_task_item_htmx(
+                self.object, trigger_event="taskUpdated", retarget=f"#task-{self.object.pk}"
             )
-            response = HttpResponse(html)
-            response["HX-Trigger"] = "taskUpdated"
-            response["HX-Retarget"] = f"#task-{self.object.pk}"
-            response["HX-Reswap"] = "outerHTML"
-            return response
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -102,11 +91,10 @@ class TaskDeleteView(LoginRequiredMixin, DeleteView):
         return reverse_lazy("projects:project_detail", kwargs={"pk": self.object.project.pk})
 
 
-class TaskToggleView(LoginRequiredMixin, UpdateView):
+class TaskToggleView(LoginRequiredMixin, TaskHTMXMixin, UpdateView):
     """Toggle task completion status."""
 
     model = Task
-    fields = ["is_done"]
 
     def get_queryset(self):
         return Task.objects.filter(project__owner=self.request.user).select_related(
@@ -116,15 +104,9 @@ class TaskToggleView(LoginRequiredMixin, UpdateView):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         self.object.is_done = not self.object.is_done
-        self.object.save()
+        self.object.save(update_fields=["is_done"])
 
         if request.htmx:
-            html = render_to_string(
-                "tasks/partials/task_item.html", {"task": self.object}, request=request
-            )
-            return HttpResponse(html)
+            return self.render_task_item_htmx(self.object)
 
-        return super().post(request, *args, **kwargs)
-
-    def get_success_url(self):
-        return reverse_lazy("projects:project_detail", kwargs={"pk": self.object.project.pk})
+        return redirect("projects:project_detail", pk=self.object.project.pk)
