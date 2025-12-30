@@ -504,7 +504,3 @@ git commit -m "refactor: add mixins to eliminate code duplication"
 - **ALLOWED_HOSTS**: Should be configured for production deployments
 - **DEBUG**: Should be `False` in production
 - User data is isolated by ownership - users can only access their own projects and tasks
-
-## 📄 License
-
-This project is for interview/portfolio purposes.
